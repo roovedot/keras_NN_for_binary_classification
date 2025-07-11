@@ -1,3 +1,4 @@
+# Supress Warnings
 import os
 # 0 = all logs, 1 = filter INFO, 2 = filter WARNING, 3 = filter ERROR
 os.environ["TF_CPP_MIN_LOG_LEVEL"]   = "3"    # suppress TF C++ INFO/WARNING
@@ -6,6 +7,7 @@ os.environ["ABSL_CPP_MIN_LOG_LEVEL"] = "3"    # suppress absl INFO/WARNING
 import absl.logging
 absl.logging.set_verbosity(absl.logging.ERROR)
 
+# Imports
 from keras import Sequential
 import keras
 from keras.layers import InputLayer, Dense
@@ -15,6 +17,10 @@ from sklearn.preprocessing import StandardScaler
 from keras.src.optimizers import SGD
 
 print("--------------------------------------------------------------------------------")
+
+# Download data from https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-ML311-Coursera/labs/Module2/L2/diabetes.csv
+# and put it into DATASET_PATH
+DATASET_PATH = "data/diabetes.csv"
 
 def loadDiabetesData(path):
 
@@ -42,8 +48,7 @@ def normaliseData(X_train, X_test):
 
 
 if __name__ == '__main__':
-    DATASET_PATH = "/mnt/01DB23CE72C96D00/VSrootWorkspace/IBM_ML_Cert/Course 5: Neural Networks/keras_NN_for_binary_classification/data/diabetes.csv"
-
+    
     # Load and split data
     X_train, X_test, y_train, y_test = loadDiabetesData(DATASET_PATH)
 
@@ -67,7 +72,7 @@ if __name__ == '__main__':
     model_1.compile(
         optimizer=SGD(learning_rate= .003), # SGD Optimizer
         loss="binary_crossentropy", # loss function
-        metrics=["accuracy", "crossentropy"], # eval metrics
+        metrics=["accuracy"], # eval metrics
     )
     #print(model_1.compiled)#debug
 
