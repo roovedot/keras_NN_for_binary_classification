@@ -11,49 +11,25 @@ absl.logging.set_verbosity(absl.logging.ERROR)
 from keras import Sequential
 import keras
 from keras.layers import InputLayer, Dense
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
 from keras.src.optimizers import SGD
+from sklearn.metrics import accuracy_score, roc_auc_score
+
+import aux # import aux.py (separate methods for cleaner code)
 
 print("--------------------------------------------------------------------------------")
 
 # Download data from https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-ML311-Coursera/labs/Module2/L2/diabetes.csv
 # and put it into DATASET_PATH
 DATASET_PATH = "data/diabetes.csv"
-
-def loadDiabetesData(path):
-
-    names = ["times_pregnant", "glucose_tolerance_test", "blood_pressure", "skin_thickness", "insulin", 
-         "bmi", "pedigree_function", "age", "has_diabetes"]
-    diabetes_df = pd.read_csv(path, names=names, header=0)
-
-    X = diabetes_df.iloc[:, :-1].values
-    y = diabetes_df["has_diabetes"].values
-
-    # Split the data to Train, and Test (75%, 25%)
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=11111)
-
-    return X_train, X_test, y_train, y_test
-
-def normaliseData(X_train, X_test):
-    ## This aids the training of neural nets by providing numerical stability
-
-    normalizer = StandardScaler()
-    X_train_norm = normalizer.fit_transform(X_train)
-    X_test_norm = normalizer.transform(X_test)
-
-    return X_train_norm, X_test_norm
-
+NUM_EPOCHS = 900
 
 if __name__ == '__main__':
 
     # Load and split data
-    X_train, X_test, y_train, y_test = loadDiabetesData(DATASET_PATH)
+    X_train, X_test, y_train, y_test = aux.loadDiabetesData(DATASET_PATH)
 
     # Preprocessing for the NN
-    X_train_norm, X_test_norm = normaliseData(X_train, X_test)
+    X_train_norm, X_test_norm = aux.normaliseData(X_train, X_test)
 
 
     # BUILD AND COMPILE MODEL
@@ -78,11 +54,26 @@ if __name__ == '__main__':
 
     # fit and save the run history (returned by the fit function)
     # Prints something like this for each epoch:
-    # Epoch 1/200
-    # 18/18 ━━━━━━━━━━━━━━━━━━━━ 0s 7ms/step - accuracy: 0.6538 - loss: 0.6510 - val_accuracy: 0.6406 - val_loss: 0.6660
+    #   Epoch 1/200
+    #   18/18 ━━━━━━━━━━━━━━━━━━━━ 0s 7ms/step - accuracy: 0.6538 - loss: 0.6510 - val_accuracy: 0.6406 - val_loss: 0.6660
     run_hist_1 = model_1.fit(
         X_train_norm, # x
         y_train, # y
         validation_data=(X_test_norm, y_test), # Just for the metrics, doesn't affect training
-        epochs=200) 
+        epochs=NUM_EPOCHS) 
     
+    pred_prob_1 = model_1.predict(X_test_norm) # Predict probability of diabetes
+    pred_binClass_1 = (pred_prob_1 > 0.5).astype(int) # binary classification, label as diabetes if probability > 50%
+
+    # See predicted probabilities for the 10 first examples
+    print(pred_prob_1[:10])
+
+
+    # VISUALIZATION
+
+    # Print model performance and plot the roc curve
+    print('accuracy is {:.3f}'.format(accuracy_score(y_test,pred_binClass_1)))
+    print('roc-auc is {:.3f}'.format(roc_auc_score(y_test,pred_prob_1)))
+    aux.plot_roc(y_test, pred_prob_1, 'NN', save_path="data/rocCurve.png") 
+
+    aux.plotHistory(run_hist_1, save_path="data/history.png")
