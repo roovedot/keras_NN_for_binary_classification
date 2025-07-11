@@ -48,7 +48,7 @@ def normaliseData(X_train, X_test):
 
 
 if __name__ == '__main__':
-    
+
     # Load and split data
     X_train, X_test, y_train, y_test = loadDiabetesData(DATASET_PATH)
 
@@ -77,7 +77,12 @@ if __name__ == '__main__':
     #print(model_1.compiled)#debug
 
     # fit and save the run history (returned by the fit function)
+    # Prints something like this for each epoch:
+    # Epoch 1/200
+    # 18/18 ━━━━━━━━━━━━━━━━━━━━ 0s 7ms/step - accuracy: 0.6538 - loss: 0.6510 - val_accuracy: 0.6406 - val_loss: 0.6660
     run_hist_1 = model_1.fit(
         X_train_norm, # x
         y_train, # y
-        validation_data=(X_test_norm, y_test)) 
+        validation_data=(X_test_norm, y_test), # Just for the metrics, doesn't affect training
+        epochs=200) 
+    
